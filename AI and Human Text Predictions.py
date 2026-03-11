@@ -138,17 +138,19 @@ print(overall_accuracy)
 def predict_author(text):
     model.eval()
 
-    # text preprocessing
     text_vector = vectorizer.transform([text])
     text_tensor = torch.tensor(text_vector.toarray(), dtype=torch.float32)
 
     with torch.no_grad():
-        output = model(text_tensor)
-        pred_index = torch.argmax(output, dim=1).item()
-        pred_author = label_encoder.inverse_transform([pred_index])[0]
+        output = model(text_tensor).item()
 
-        probabilities = torch.softmax(output, dim=1).numpy()[0]
-        confidence = float(np.max(probabilities))
+        if output > 0.5:
+            pred_index = 1
+        else:
+            pred_index = 0
+
+        pred_author = encoder.inverse_transform([pred_index])[0]
+        confidence = output if pred_index == 1 else 1 - output
 
     return f"Predicted Author: {pred_author}\nConfidence: {confidence:.4f}"
 
